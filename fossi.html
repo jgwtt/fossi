@@ -66,6 +66,15 @@
     button{padding:5px 9px;font-size:13px}
     .name input{font-size:20px}
   }
+
+  /* ===== Inline confirm modal (replaces window.confirm) ===== */
+  .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.25);z-index:9999}
+  .modal.show{display:flex}
+  .modal .card{background:#fff;border:1px solid #e6e6e6;border-radius:12px;padding:14px;max-width:90vw;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+  .modal .title{font-weight:700;margin:0 0 8px 0}
+  .modal .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+  .btn-secondary{background:#eef2f4;border-color:#cfd6dc}
+  .btn-danger{background:#fdecea;border-color:#f5c2b9;color:#7a1307}
 </style>
 </head>
 <body>
@@ -84,6 +93,17 @@
       <div class="hdr">Points</div>
       <div class="hdr">Guests</div>
       <div class="hdr">Regulars</div>
+    </div>
+  </div>
+
+  <!-- Inline confirm modal -->
+  <div id="resetModal" class="modal" aria-modal="true" role="dialog">
+    <div class="card">
+      <p class="title">Reset all names and values?</p>
+      <div class="actions">
+        <button id="reset-cancel" class="btn btn-secondary">Cancel</button>
+        <button id="reset-ok" class="btn btn-danger">Reset</button>
+      </div>
     </div>
   </div>
 
@@ -146,12 +166,14 @@ function tap(i,f,d){
   document.getElementById(`r${i}`).textContent=state[i].regulars;
 }
 
-document.getElementById('reset').onclick=()=>{
-  if(confirm('Reset all?')){
-    state=[...Array(4)].map(()=>({name:'',points:0,guests:0,regulars:0,color:'black'}));
-    save(); render();
-  }
+const modal = document.getElementById('resetModal');
+document.getElementById('reset').onclick = () => { modal.classList.add('show'); };
+document.getElementById('reset-cancel').onclick = () => { modal.classList.remove('show'); };
+document.getElementById('reset-ok').onclick = () => {
+  state=[...Array(4)].map(()=>({name:'',points:0,guests:0,regulars:0,color:'black'}));
+  save(); render(); modal.classList.remove('show');
 };
+
 document.getElementById('opening').onclick=()=>{
   state=state.map(r=>{
     const g=Math.max(0,Math.min(30,+r.guests||0));
@@ -161,7 +183,6 @@ document.getElementById('opening').onclick=()=>{
   save(); render();
 };
 
-/* Fullscreen toggle */
 const fsBtn=document.getElementById('fs');
 fsBtn.addEventListener('click', async ()=>{
   try{
@@ -171,7 +192,6 @@ fsBtn.addEventListener('click', async ()=>{
 });
 document.addEventListener('fullscreenchange', ()=>{ fsBtn.textContent=document.fullscreenElement?'×':'⤢'; });
 
-/* INITIAL DRAW */
 render();
 </script>
 </body>
